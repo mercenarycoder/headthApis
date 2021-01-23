@@ -15,9 +15,8 @@ const flash=require('connect-flash');
 var options={
     host:'localhost',
     user:'root',
-    database:'headth2',
-    password:'',
-    port:3306
+    database:'headth',
+    password:'root'
 }
 var sessionStore=new exp_mysql_sess(options);
 //trying winston console logger 
