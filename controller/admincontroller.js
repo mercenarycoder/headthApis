@@ -1,7 +1,8 @@
+//models import over here
 const company = require('../models/company');
 const company2 = require('../models/company2');
-
 const resetpassword=require('../models/resetpassword');
+
 const bcrypt = require('bcryptjs');
 //importing third party mailer support
 const nodemailer=require('nodemailer');
@@ -9,11 +10,7 @@ const sendgridTransport=require('nodemailer-sendgrid-transport');
 const crypto=require('crypto');
 const {validationResult}=require('express-validator')
 
-const transporter=nodemailer.createTransport(sendgridTransport({
-    auth:{
-        api_key:'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'
-    }
-}));
+
 var transport2=nodemailer.createTransport({
     service:'gmail',
     auth:{

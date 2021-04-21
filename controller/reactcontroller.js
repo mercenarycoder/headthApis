@@ -1,15 +1,22 @@
+//models are imported from here
 const company = require('../models/company');
 const prescription=require('../models/prescription');
+const medicine=require('../models/medicine');
+const dieseas=require('../models/dieseas');
+const allergy=require('../models/allergy');
+const history=require('../models/history');
 const reports=require('../models/report');
-const bcrypt = require('bcryptjs');
 const user=require('../models/user');
 const accessrecord=require('../models/accessrecord');
+//till here
+//bcrypt package to encrypt password
+const bcrypt = require('bcryptjs');
 //importing third party mailer support
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 const crypto = require('crypto');
 const validator = require('validator');
-const history = require('../models/history');
+// const history = require('../models/history');
 const { validationResult } = require('express-validator')
 // importing jsonwebtoken 
 const jwt = require('jsonwebtoken');
@@ -30,7 +37,7 @@ const createToken = async () => {
     console.log(token);
     const userVer = jwt.verify(token, secret);
     console.log(userVer);
-    history.getHistoryByMobile('89438159').then(res => {
+    history.getHistoryByMobile('789438159').then(res => {
         console.log(res);
     }).catch(err => {
         console.log(err);
@@ -190,6 +197,10 @@ exports.searchFuntion=async(req,res,next)=>{
         let reportsF=null;
         let profileF=null;
         let precriptionsF=null;
+        let dieseasF=null;
+        let allergyF=null;
+        let historyF=null;
+        let medicineF=null;
         if(!mobile||mobile.length<10)
         {
             const err=new Error('Invalid mobile number');
@@ -224,13 +235,25 @@ exports.searchFuntion=async(req,res,next)=>{
         }).then(result=>{
             profileF=result[0];
             // res.status(201).json({status:1,profile:result[0],mobile:mobile,msg:'profile fetched successfully'});
-            return prescription.getFrontPres(mobile);
+            return prescription.getAllById(mobile);
         }).then(result=>{
             precriptionsF=result[0];
-            return reports.getReportTop(mobile);
+            return reports.getReport(mobile);
         }).then(result=>{
             reportsF=result[0];
-            res.status(201).json({status:1,profile:profileF,prescription:precriptionsF,report:reportsF,msg:'basic profile fetched successfully'});
+            return dieseas.getDieseasByMobile(mobile);
+        }).then(result=>{
+            dieseasF=result[0];
+            return medicine.getMedicines(mobile);
+        }).then(result=>{
+            medicineF=result[0];
+            return allergy.getAllergyByMobile(mobile);
+        }).then(result=>{
+            allergyF=result[0];
+            return history.getHistoryByMobile(mobile);
+        }).then(result=>{
+            historyF=result[0];
+            res.status(201).json({status:1,profile:profileF,prescription:precriptionsF,report:reportsF,medicine:medicineF,history:historyF,allergy:allergyF,diesease:dieseasF,msg:'basic profile fetched successfully'});
         })
         .catch(err => {
             console.log(err);
