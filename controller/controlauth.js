@@ -8,6 +8,8 @@ const medicine = require('../models/medicine');
 const allergy = require('../models/allergy');
 const upgrade = require('../models/upgrade');
 const notification = require('../models/notification');
+const covid_table = require('../models/covid_table');
+const volunteer = require('../models/volunteer');
 const fs = require('fs');
 const path = require('path');
 const { validationResult } = require('express-validator');
@@ -124,7 +126,7 @@ exports.addImage64 = (req, res, next) => {
     let name = req.body.name;
     let type2 = req.body.type;
     name = name + type2;
-    console.log(image.substring(0,20)," ",name," ",type2);
+    console.log(image.substring(0, 20), " ", name, " ", type2);
     if (!name || !type2 || !image) {
         const err = new Error('Invalid Request');
         err.statusCode = 200;
@@ -146,7 +148,20 @@ exports.addImage64 = (req, res, next) => {
         error.statusCode = 422;
         throw error;
     }
-    res.status(201).json({status:1,name:fileName,msg:"data inserted"});
+    res.status(201).json({ status: 1, name: fileName, msg: "data inserted" });
+}
+function decodeBase64Image(dataString) {
+    let matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+        response = {};
+    if (matches.length !== 3) {
+        const err = new Error('Invalid input string');
+        err.statusCode = 200;
+        throw err;
+    }
+    // console.log(matches);
+    response.type = matches[1];
+    response.data = new Buffer(matches[2], 'base64');
+    return response;
 }
 exports.addPrescription = (req, res, next) => {
     const errors = validationResult(req);
@@ -162,7 +177,7 @@ exports.addPrescription = (req, res, next) => {
     let date = req.body.date;
     let doctor = req.body.doctor;
     let observation = req.body.observation;
-    let image=req.body.imagePath;
+    let image = req.body.imagePath;
 
     if (!mobile || !title || !date || !observation || !image) {
         const err = new Error("Invalid data");
@@ -189,19 +204,6 @@ exports.addPrescription = (req, res, next) => {
     });
 }
 
-function decodeBase64Image(dataString) {
-    let matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-        response = {};
-    if (matches.length !== 3) {
-        const err = new Error('Invalid input string');
-        err.statusCode = 200;
-        throw err;
-    }
-    // console.log(matches);
-    response.type = matches[1];
-    response.data = new Buffer(matches[2], 'base64');
-    return response;
-}
 exports.deleteData = (req, res, next) => {
     const file = req.body.file;
     if (!file) {
@@ -228,6 +230,280 @@ exports.deleteData = (req, res, next) => {
         throw error;
     }
 }
+//screen one apis
+exports.getCovidInfo = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        if (!mobile || mobile.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
+            throw err;
+        }
+        let present = await covid_table.checkUser(mobile);
+        // console.log(present);
+        present = present[0];
+        present=present[0];
+        // console.log(present.present);
+        // console.log(present);
+        if (present.present > 0) {
+            covid_table.getuserData(mobile).then(result => {
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+        else {
+            let newCovid = new covid_table(mobile);
+            newCovid.save().then(result => {
+                return covid_table.getuserData(mobile);
+            }).then(result => {
+                t1 = "Your Covid Profile created ";
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `A Covid Profile with number ${mobile} was created on ` + dd;
+                addNotification(t1, c1, mobile);
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.submitData = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        const path = req.body.path;
+        const type = req.body.type;
+        if (!mobile || mobile.length != 10 || !path || !type) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
+            throw err;
+        }
+        console.log(mobile, ' ', path, ' ', type);
+        covid_table.submitData(type, path, mobile).then(result => {
+            t1 = `Data inserted in ${type} in covid profile`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `A data was inserted on number ${mobile} with ${type}` + dd;
+            addNotification(t1, c1, mobile);
+            res.status(201).json({ status: 1, msg: `${type} is inserted successfully` });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        });
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.changeVolunteer = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        const status = req.body.status;
+        console.log(mobile," ",status);
+        if (!mobile || mobile.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
+            throw err;
+        }
+        covid_table.changeVolunteer(mobile, status).then(result => {
+            let t1 = `Your Volunteer Status changed in covid profile`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `Volunteer status changed on number ${mobile}` + dd;
+            addNotification(t1, c1, mobile);
+            return volunteer.changeStatus(mobile,status);
+        }).then(result=>{
+            res.status(201).json({ status: 1, msg: 'Voluteer status updated' });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        });
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.checkVolunteerInfo=async (req,res,next)=>{
+    try{
+        const mobile=req.body.mobile;
+        if(!mobile||!mobile.length==10){
+            const err=new Error('Invalid Data');
+            err.statusCode=200;
+            next(err);
+        }
+        let num=await volunteer.checkPresence(mobile);
+        num=num[0];
+        num=num[0];
+        // num =num[0];
+        console.log(num.num);
+        if(num.num>0){
+            volunteer.getDefaultInfo(mobile).then(result=>{
+                console.log(result[0]);
+                res.status(201).json({status:1,data:result[0],msg:"Volunteer information fetched"});
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+        else{
+            res.status(201).json({status:2,data:{},msg:"First time volunteer"});
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.setVolunteer = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        const age = req.body.age;
+        const name = req.body.name;
+        let blood = req.body.blood;
+        let address = req.body.address;
+        const pin = req.body.pin;
+        let city = req.body.city;
+        if (!mobile || mobile.length != 10 || !age || !blood || !address || !pin || !city) {
+            const err = new Error('Invalid Data Supplied');
+            err.statusCode = 200;
+            next(err);
+        }
+        city = city.toLowerCase();
+        blood = blood.toLowerCase();
+
+        let num=await volunteer.checkPresence(mobile);
+        num=num[0];
+        num=num[0];
+        // num =num[0];
+        console.log(num.num);
+        if(num.num>0){
+            volunteer.updateVolunteer(city,address,pin,age,blood,mobile).then(result=>{
+                res.status(201).json({ status: 1, msg: 'Successfully updated volunteer profile'});
+            }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+            });
+        }
+        else{
+        let newVolunteer = new volunteer(name, mobile, address, city, pin, 1, blood,age);
+        newVolunteer.save().then(result => {
+            let t1 = `You are added as a volunteer in covid profile`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `You are a volunteer on number ${mobile} ` + dd;
+            addNotification(t1, c1, mobile);
+            res.status(201).json({ statuc: 1, msg: 'Successfully turned into a volunteer' });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.getVolunteer = async (req, res, next) => {
+    try {
+        const age=req.body.age;
+        let pin=req.body.pin;
+        let city=req.body.city;
+        let mobile=req.body.mobile;
+        let blood=req.body.blood;
+        if(!age||!pin|!city||!blood||!mobile||mobile.length!=10){
+            const err=new Error('Invalid Data');
+            err.statusCode=200;
+            throw err;
+        }
+        city=city.toLowerCase();
+        if(blood==='all'){
+            volunteer.getvolunteer2(city,pin,age).then(result=>{
+                let t1 =  `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with ${pin} , ${city} , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                    res.status(201).json({status:1,data:result[0]});
+                }).catch(err => {
+                    console.log(err);
+                    if (!err.statusCode) {
+                        err.statusCode = 200;
+                    }
+                    next(err);
+                });
+        }
+        else
+        {
+            volunteer.getvolunteer(city,pin,blood,age).then(result=>{
+            let t1 =  `You searched plasma donors`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `You searched plasma donors with ${pin} , ${city} , ${blood} , ${age}` + dd;
+            addNotification(t1, c1, mobile);
+                res.status(201).json({status:1,data:result[0]});
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
 exports.addReport = (req, res, next) => {
     const title = req.body.title;
     const observer = req.body.observer;
@@ -248,7 +524,7 @@ exports.addReport = (req, res, next) => {
     console.log(title + " " + observer + " " + detail + " " + date + " " + fileName + " " + typeF + " " + mobile + " " + category);
     const entry = new report(title, observer, detail, date, fileName, typeF, mobile, category);
     entry.save().then(result => {
-        t1 = "Report added " + title;
+        let t1 = "Report added " + title;
         var date2 = new Date();
         let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
         c1 = "A report was added on " + dd + " with observer name " + observer;
@@ -326,17 +602,16 @@ exports.updatePrescription = (req, res, next) => {
         err.statusCode = 201;
         throw err;
     }
-    prescription.updatePres(id,mobile,title,date,image,doctor,observation).then(result=>{
+    prescription.updatePres(id, mobile, title, date, image, doctor, observation).then(result => {
         t1 = "Prescription Updated " + title;
         var date2 = new Date();
         let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
         c1 = "A Prescription was updated on " + dd + " with observer name " + observation;
         addNotification(t1, c1, mobile);
-        res.status(201).json({status:1,msg:'Prescription updated successfully'});
-    }).catch(err=>{
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        res.status(201).json({ status: 1, msg: 'Prescription updated successfully' });
+    }).catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });
@@ -786,23 +1061,22 @@ exports.updateReport = (req, res, next) => {
     const fileName = req.body.filename;
     const typeF = req.body.type;
     const category = req.body.category;
-    const id=req.body.id;
+    const id = req.body.id;
     if (!fileName || !mobile || !id || !title || !date || !category || !observer || !typeF || !detail) {
         const err = new Error("No image provided");
         err.statusCode = 201;
         throw err;
     }
-    report.updateReport(id,mobile,title,observer,detail,date,fileName,typeF,category).then(result=>{
+    report.updateReport(id, mobile, title, observer, detail, date, fileName, typeF, category).then(result => {
         t1 = "Report Updated " + title;
         var date2 = new Date();
         let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-        c1 = "A report was updated on " + dd ;
+        c1 = "A report was updated on " + dd;
         addNotification(t1, c1, mobile);
-        res.status(201).json({status:1,msg:'Report updated successfully'});
-    }).catch(err=>{
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        res.status(201).json({ status: 1, msg: 'Report updated successfully' });
+    }).catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });

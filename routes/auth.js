@@ -108,4 +108,13 @@ router.post('/newOtp',extras.setOtpVerifier);
 router.post('/updateOtp',extras.updateOtpVerifier);
 router.post('/checkOtp',extras.checkOtpVerifier);
 router.post('/deleteOtp',extras.deleteOtp);
+//mycovid profile routes
+router.post('/getCovidProfile',controlauth.getCovidInfo);
+router.post('/submitData',controlauth.submitData);
+router.post('/volunteer',controlauth.changeVolunteer);
+// routes to set and get volunteers
+router.post('/setVolunteer',controlauth.setVolunteer);
+router.post('/getVolunteer',controlauth.getVolunteer);
+//route for getting default volunteer profile
+router.post('/defaultVolunteer',controlauth.checkVolunteerInfo);
 module.exports=router;

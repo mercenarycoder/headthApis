@@ -190,6 +190,55 @@ catch(err)
 }
 }
 
+exports.askPermission=async (req,res,next)=>{
+    try{
+        const token=req.body.token;
+        const mobile=req.body.mobile;
+        if(!mobile||mobile.length<10)
+        {
+            const err=new Error('Invalid mobile number');
+            err.statusCode=200;
+            throw err;
+        }
+        if(!token||token.length<15)
+        {
+            const err=new Error('Token is not supplied');
+            err.statusCode=200;
+            throw err;
+        }
+        const emailD=await jwt.verify(token,jwt_Secret);
+        console.log('hi ia ma here ',emailD.email);
+        company.check(emailD.email).then(result=>{
+            console.log(result[0]);
+            let num=result[0];
+            num=num[0];
+            // console.log(num);
+            if(num.num>0)
+            {
+                let entry=new accessrecord(emailD.email,mobile,'sent');
+                entry.save().then(result=>{
+                    res.status(201).json({status:1,msg:'Request Sent Successfully'});
+                });
+            }
+            else
+            {
+                console.log('reaching here');
+                res.status(200).json({status:0,msg:'Email is not registered with us..'});
+            }
+        }).catch(err=>{
+            console.log(err);
+            if(!err.statusCode)
+            {
+                err.statusCode=200;
+            }
+            next(err);
+        })
+    }
+    catch(err){
+        next(err);
+    }
+}
+
 exports.searchFuntion=async(req,res,next)=>{
     try{
         const token=req.body.token;
@@ -222,16 +271,26 @@ exports.searchFuntion=async(req,res,next)=>{
             // console.log(num);
             if(num.num>0)
             {
-                const entry=new accessrecord(emailD.email,mobile,"basic");
-                return entry.save();
+                return accessrecord.seenRecord(emailD,'done','done',mobile);
+                // return entry.save();
             }
             else
             {
                 console.log('reaching here');
                 res.status(200).json({status:0,msg:'Email is not registered with us..'});
             }
-        }).then(res=>{
-            return user.getProfile(mobile);
+        }).then(result=>{
+            return user.checkNumber(mobile);
+        }).then(result=>{
+            let num=result[0];
+            num=num[0];
+            if(num>0)
+            {
+                return user.getProfile(mobile);
+            }
+            else{
+                res.status(200).json({status:0,msg:'The number is not found in our records'});
+            }
         }).then(result=>{
             profileF=result[0];
             // res.status(201).json({status:1,profile:result[0],mobile:mobile,msg:'profile fetched successfully'});
@@ -381,3 +440,4 @@ exports.prescriptionFunction=async(req,res,next)=>{
         next(err);
     }
 }
+

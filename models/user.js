@@ -21,5 +21,7 @@ module.exports=class User{
     {
         return db.execute('UPDATE userbasic SET name=(?),height=(?),weight=(?),dob=(?),blood=(?)WHERE mobile=(?)',[name,height,weight,dob,blood,mobile]);
     }
-   
+    static checkNumber(mobile){
+        return db.execute('SELECT COUNT(mobile) AS num FROM userbasic WHERE mobile=(?)',[mobile]);
+    }
 }
