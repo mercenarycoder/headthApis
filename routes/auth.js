@@ -117,4 +117,8 @@ router.post('/setVolunteer',controlauth.setVolunteer);
 router.post('/getVolunteer',controlauth.getVolunteer);
 //route for getting default volunteer profile
 router.post('/defaultVolunteer',controlauth.checkVolunteerInfo);
+//bulk request notifications apis
+router.post('/raiseAlarm',extras.addBulkEmergency);
+router.post('/getBulks',extras.searchBulk);
+router.post('/changeBulkStatus',extras.changeBulkStatus);
 module.exports=router;

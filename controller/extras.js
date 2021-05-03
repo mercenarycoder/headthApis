@@ -3,12 +3,100 @@ const dieseas = require('../models/dieseas');
 const medicine = require('../models/medicine');
 const allergy = require('../models/allergy');
 const al2 = require('../models/allergy');
-const emergency=require('../models/emergency');
-const qraccesshistory=require('../models/qraccesshistory');
+const emergency = require('../models/emergency');
+const qraccesshistory = require('../models/qraccesshistory');
+const bulkEmergency = require('../models/bulkEmergency');
 const notification = require('../models/notification');
-const otptable=require('../models/otptable');
+const otptable = require('../models/otptable');
 const bcrypt = require('bcryptjs');
 
+exports.addBulkEmergency = async (req, res, next) => {
+    try {
+        const called = req.body.called;
+        const caller = req.body.caller;
+        if (!called || called.length != 10 || !caller || caller.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
+            throw err;
+        }
+        let adder = new bulkEmergency(caller, called, 0);
+        adder.save().then(result => {
+            res.status(201).json({ status: 1, msg: 'Bulk Emrgency Request raised Successfully' });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        })
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.searchBulk = async (req, res, next) => {
+    try {
+        const called = req.body.called;
+        if (!called || called.length != 10) {
+            const err = new Error('Invalid Request');
+            err.statusCode = 200;
+            throw err;
+        }
+        let num = await bulkEmergency.checkExistence(called);
+        num = num[0];
+        num = num[0];
+        if (num.num === 0) {
+            res.status(201).json({ status: 2, msg: "No notification for you" });
+        }
+        else {
+            bulkEmergency.getMyAlarms(called).then(result => {
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+
+}
+exports.changeBulkStatus = async (req, res, next) => {
+    try {
+        const called = req.body.called;
+        const caller = req.body.caller;
+        if (!called || called.length != 10 || !caller || caller.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
+            throw err;
+        }
+        bulkEmergency.changeStatus(called, caller, 1).then(result => {
+            res.status(201).json({ status: 1, msg: 'status changed for the bulk requests' });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        })
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
 exports.addAllergy = (req, res, next) => {
     const mobile = req.body.mobile;
     const allergy = req.body.allergy;
@@ -427,207 +515,188 @@ exports.getNotification = (req, res, next) => {
         next(err);
     })
 }
-exports.setOtpVerifier=(req,res,next)=>{
-    const number=req.body.number;
-    const otp=req.body.otp;
-    console.log(number," ",otp);
-    if(!number||!otp)
-    {
-        const err=new Error("Invalid data");
-        err.statusCode=200;
+exports.setOtpVerifier = (req, res, next) => {
+    const number = req.body.number;
+    const otp = req.body.otp;
+    console.log(number, " ", otp);
+    if (!number || !otp) {
+        const err = new Error("Invalid data");
+        err.statusCode = 200;
         throw err;
     }
-    let oo=new otptable(number,otp);
-    oo.save().then(result=>{
-        res.status(201).json({status:1,msg:'otp of your number stated'});
-    }).catch(err=>{
+    let oo = new otptable(number, otp);
+    oo.save().then(result => {
+        res.status(201).json({ status: 1, msg: 'otp of your number stated' });
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });
 }
-exports.deleteOtp=(req,res,next)=>{
-    const number=req.body.number;
-    console.log(number," ");
-    if(!number)
-    {
-        const err=new Error("Invalid data");
-        err.statusCode=200;
+exports.deleteOtp = (req, res, next) => {
+    const number = req.body.number;
+    console.log(number, " ");
+    if (!number) {
+        const err = new Error("Invalid data");
+        err.statusCode = 200;
         throw err;
     }
-    otptable.deleter(number).then(result=>{
-        res.status(201).json({status:1,msg:'otp of your number deleted'});
-    }).catch(err=>{
+    otptable.deleter(number).then(result => {
+        res.status(201).json({ status: 1, msg: 'otp of your number deleted' });
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });
 }
-exports.updateOtpVerifier=(req,res,next)=>{
-    const number=req.body.number;
-    const otp=req.body.otp;
-    console.log(number," ",otp);
-    if(!number||!otp)
-    {
-        const err=new Error("Invalid data");
-        err.statusCode=200;
+exports.updateOtpVerifier = (req, res, next) => {
+    const number = req.body.number;
+    const otp = req.body.otp;
+    console.log(number, " ", otp);
+    if (!number || !otp) {
+        const err = new Error("Invalid data");
+        err.statusCode = 200;
         throw err;
     }
-    otptable.updater(number,otp).then(result=>{
-        res.status(201).json({status:1,msg:"your otp is updated"});
-    }).catch(err=>{
+    otptable.updater(number, otp).then(result => {
+        res.status(201).json({ status: 1, msg: "your otp is updated" });
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     })
 }
-exports.checkOtpVerifier=(req,res,next)=>{
-    const number=req.body.number;
-    const otp=req.body.otp;
-    console.log(number," ",otp);
-    if(!number||!otp)
-    {
-        const err=new Error("Invalid data");
-        err.statusCode=200;
+exports.checkOtpVerifier = (req, res, next) => {
+    const number = req.body.number;
+    const otp = req.body.otp;
+    console.log(number, " ", otp);
+    if (!number || !otp) {
+        const err = new Error("Invalid data");
+        err.statusCode = 200;
         throw err;
     }
-    otptable.checker(number).then(result=>{
-        let rr=result[0];
-        rr=rr[0];
-        if(rr.otp===otp)
-        {
-            res.status(201).json({status:1,msg:'otp verified successfully'});
+    otptable.checker(number).then(result => {
+        let rr = result[0];
+        rr = rr[0];
+        if (rr.otp === otp) {
+            res.status(201).json({ status: 1, msg: 'otp verified successfully' });
         }
-        else{
-            res.status(201).json({status:0,msg:'otp verification failed'});
+        else {
+            res.status(201).json({ status: 0, msg: 'otp verification failed' });
         }
-    }).catch(err=>{
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     })
 }
-exports.checkRequest=(req,res,next)=>{
+exports.checkRequest = (req, res, next) => {
     //method of extracting a query parameter from a get request
-    const url=req.query.url;
-    const mobile=req.query.mobile;
-    if(!url)
-    {
-        const err=new Error('Invalid request');
+    const url = req.query.url;
+    const mobile = req.query.mobile;
+    if (!url) {
+        const err = new Error('Invalid request');
         err.statusCode(200);
         throw err;
     }
     console.log(url);
-    res.render('verify',{url:url,mobile:mobile});
+    res.render('verify', { url: url, mobile: mobile });
 }
-exports.confirmCheck=(req,res,next)=>{
-    const phone=req.body.number;
-    const url=req.body.url;
-    const mobile=req.body.mobile;
-    console.log(phone,url,mobile);
-    if(!phone||!url||!mobile)
-    {
-        const err=new Error("Invalid Request..");
-        err.statusCode=200;
+exports.confirmCheck = (req, res, next) => {
+    const phone = req.body.number;
+    const url = req.body.url;
+    const mobile = req.body.mobile;
+    console.log(phone, url, mobile);
+    if (!phone || !url || !mobile) {
+        const err = new Error("Invalid Request..");
+        err.statusCode = 200;
         throw err;
     }
-    emergency.checkExistence(phone).then(result=>{
-        let num=result[0];
-        num=num[0];
-        num=num.god;
+    emergency.checkExistence(phone).then(result => {
+        let num = result[0];
+        num = num[0];
+        num = num.god;
         console.log(num);
-        if(num>0)
-        {
-        t1 = "Your Document was viewed";
-        var date = new Date();
-        let dd = date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
-        c1 = "One of your document was viewed by:- " + phone +" on "+dd;
-        addNotification(t1, c1, mobile);
-        res.render('confirm',{url:url});
+        if (num > 0) {
+            t1 = "Your Document was viewed";
+            var date = new Date();
+            let dd = date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
+            c1 = "One of your document was viewed by:- " + phone + " on " + dd;
+            addNotification(t1, c1, mobile);
+            res.render('confirm', { url: url });
         }
-        else{
+        else {
             res.render('fail');
         }
-    }).catch(err=>{
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     })
 }
-exports.deleteNotification=(req,res,next)=>{
-    const id=req.body.id;
-    if(!id)
-    {
-        const err=new Error('Invalid Request');
-        err.statusCode=200;
+exports.deleteNotification = (req, res, next) => {
+    const id = req.body.id;
+    if (!id) {
+        const err = new Error('Invalid Request');
+        err.statusCode = 200;
         throw err;
     }
-    notification.deleteNotification(id).then(result=>{
-        res.status(201).json({status:1,msg:'Notification hidden successfully'});
-    }).catch(err=>{
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+    notification.deleteNotification(id).then(result => {
+        res.status(201).json({ status: 1, msg: 'Notification hidden successfully' });
+    }).catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });
 }
-exports.updateNotification=(req,res,next)=>{
-    const id=req.body.id;
-    if(!id)
-    {
-        const err=new Error('Invalid Request');
-        err.statusCode=200;
+exports.updateNotification = (req, res, next) => {
+    const id = req.body.id;
+    if (!id) {
+        const err = new Error('Invalid Request');
+        err.statusCode = 200;
         throw err;
     }
     console.log(id);
-    notification.updateNotification(id).then(result=>{
-        res.status(201).json({status:1,msg:"Notification status updated successfully"});
-    }).catch(err=>{
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+    notification.updateNotification(id).then(result => {
+        res.status(201).json({ status: 1, msg: "Notification status updated successfully" });
+    }).catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     });
 }
-exports.updateLocationAccess=(req,res,next)=>{
-    const user=req.body.user;
-    const accesser=req.body.accesser;
-    const latitude=req.body.latitude;
-    const longitude=req.body.longitude;
-    const date=req.body.date;
-    const time=req.body.time;
-    console.log(user," ",accesser," ",latitude," ",longitude," ",date," ",time);
-    if(!user||!accesser||!date||!time||!latitude||!longitude)
-    {
-        const err=new Error("Invalid request");
-        err.statusCode=200;
+exports.updateLocationAccess = (req, res, next) => {
+    const user = req.body.user;
+    const accesser = req.body.accesser;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+    const date = req.body.date;
+    const time = req.body.time;
+    console.log(user, " ", accesser, " ", latitude, " ", longitude, " ", date, " ", time);
+    if (!user || !accesser || !date || !time || !latitude || !longitude) {
+        const err = new Error("Invalid request");
+        err.statusCode = 200;
         throw err;
     }
-    const qr=new qraccesshistory(user,accesser,date,time,latitude,longitude);
-    qr.save().then(result=>{
-        res.status(201).json({status:1,msg:'Qr access recorded'});
-    }).catch(err=>{
+    const qr = new qraccesshistory(user, accesser, date, time, latitude, longitude);
+    qr.save().then(result => {
+        res.status(201).json({ status: 1, msg: 'Qr access recorded' });
+    }).catch(err => {
         console.log(err);
-        if(!err.statusCode)
-        {
-            err.statusCode=200;
+        if (!err.statusCode) {
+            err.statusCode = 200;
         }
         next(err);
     })

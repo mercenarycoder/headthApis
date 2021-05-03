@@ -23,10 +23,10 @@ module.exports=class volunteer{
         return db.execute('UPDATE volunteer SET city=(?),pincode=(?),address=(?),age=(?),blood=(?) WHERE mobile=(?)',[city,pin,address,age,blood,mobile]);
     }
     static getvolunteer(city,pin,blood,age){
-        return db.execute('SELECT * FROM volunteer WHERE city=(?) OR pincode=(?) OR blood=(?) OR age BETWEEN 18 AND (?) AND enabled IS TRUE',[city,pin,blood,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[city,pin,blood,age]);
     }
     static getvolunteer2(city,pin,age){
-        return db.execute('SELECT * FROM volunteer WHERE city=(?) OR pincode=(?) OR age BETWEEN 18 AND (?) AND enabled IS TRUE',[city,pin,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) AND age BETWEEN 18 AND (?) ',[city,pin,age]);
     }
     static getDefaultInfo(mobile){
         return db.execute('SELECT * FROM volunteer WHERE mobile=(?)',[mobile]);
