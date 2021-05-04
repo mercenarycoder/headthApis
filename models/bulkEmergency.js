@@ -14,7 +14,7 @@ module.exports=class bulkEmergency{
     static getMyAlarms(called){
         return db.execute('SELECT * FROM bulkemergency WHERE called=(?) AND status = 0',[called]);
     }
-    static changeStatus(called,status,caller){
+    static changeStatus(called,caller,status){
         return db.execute('UPDATE bulkemergency SET status=(?) WHERE called=(?) AND caller=(?)',[status,called,caller]);
     }
     static checkExistence(called){

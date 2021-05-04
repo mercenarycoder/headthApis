@@ -80,7 +80,8 @@ exports.changeBulkStatus = async (req, res, next) => {
             err.statusCode = 200;
             throw err;
         }
-        bulkEmergency.changeStatus(called, caller, 1).then(result => {
+        bulkEmergency.changeStatus(called, caller,1).then(result => {
+            console.log(result);
             res.status(201).json({ status: 1, msg: 'status changed for the bulk requests' });
         }).catch(err => {
             console.log(err);
