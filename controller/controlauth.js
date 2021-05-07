@@ -504,6 +504,114 @@ exports.getVolunteer = async (req, res, next) => {
         next(err);
     }
 }
+exports.getVolunteerByPin1=async (req, res, next) => {
+    try {
+        const age=req.body.age;
+        let pin=req.body.pin;
+        let mobile=req.body.mobile;
+        let blood=req.body.blood;
+        if(!age||!pin||!blood||!mobile||mobile.length!=10){
+            const err=new Error('Invalid Data');
+            err.statusCode=200;
+            throw err;
+        }
+        // city=city.toLowerCase();
+        if(blood==='all'){
+            volunteer.getVolunteerByPin2(pin,age).then(result=>{
+                let t1 =  `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with ${pin}  , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                    res.status(201).json({status:1,data:result[0]});
+                }).catch(err => {
+                    console.log(err);
+                    if (!err.statusCode) {
+                        err.statusCode = 200;
+                    }
+                    next(err);
+                });
+        }
+        else
+        {
+            volunteer.getVolunteerByPin(pin,blood,age).then(result=>{
+            let t1 =  `You searched plasma donors`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `You searched plasma donors with ${pin} , ${blood} , ${age}` + dd;
+            addNotification(t1, c1, mobile);
+                res.status(201).json({status:1,data:result[0]});
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
+exports.getVolunteerByCity=async (req, res, next) => {
+    try {
+        const age=req.body.age;
+        let city=req.body.city;
+        let mobile=req.body.mobile;
+        let blood=req.body.blood;
+        if(!age||!city||!blood||!mobile||mobile.length!=10){
+            const err=new Error('Invalid Data');
+            err.statusCode=200;
+            throw err;
+        }
+        city=city.toLowerCase();
+        if(blood==='all'){
+            volunteer.getVolunteerByCity2(city,age).then(result=>{
+                let t1 =  `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with ${city} , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                    res.status(201).json({status:1,data:result[0]});
+                }).catch(err => {
+                    console.log(err);
+                    if (!err.statusCode) {
+                        err.statusCode = 200;
+                    }
+                    next(err);
+                });
+        }
+        else
+        {
+            volunteer.getVolunteerByCity(city,blood,age).then(result=>{
+            let t1 =  `You searched plasma donors`;
+            var date2 = new Date();
+            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            c1 = `You searched plasma donors with  ${city} , ${blood} , ${age}` + dd;
+            addNotification(t1, c1, mobile);
+                res.status(201).json({status:1,data:result[0]});
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
+        }
+    }
+    catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
 exports.addReport = (req, res, next) => {
     const title = req.body.title;
     const observer = req.body.observer;

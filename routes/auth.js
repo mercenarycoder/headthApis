@@ -115,6 +115,8 @@ router.post('/volunteer',controlauth.changeVolunteer);
 // routes to set and get volunteers
 router.post('/setVolunteer',controlauth.setVolunteer);
 router.post('/getVolunteer',controlauth.getVolunteer);
+router.post('/getVolunteerCity',controlauth.getVolunteerByCity);
+router.post('/getVolunteerPin',controlauth.getVolunteerByPin1);
 //route for getting default volunteer profile
 router.post('/defaultVolunteer',controlauth.checkVolunteerInfo);
 //bulk request notifications apis

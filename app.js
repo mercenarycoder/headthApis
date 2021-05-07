@@ -21,7 +21,7 @@ var options = {
     host: 'localhost',
     user: 'root',
     database: 'headth2',
-    password: '',
+    password: 'headth2',
     port: 3306
 }
 var sessionStore = new exp_mysql_sess(options);

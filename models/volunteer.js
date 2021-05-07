@@ -34,4 +34,16 @@ module.exports=class volunteer{
     static checkPresence(mobile){
         return db.execute('SELECT COUNT(id) AS num FROM volunteer WHERE mobile=(?)',[mobile]);
     }
+    static getVolunteerByCity(city,blood,age){
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[city,blood,age]);
+    }
+    static getVolunteerByCity2(city,age){
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) AND age BETWEEN 18 AND (?)',[city,age]);
+    }
+    static getVolunteerByPin(pin,blood,age){
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[pin,blood,age]);
+    }
+    static getVolunteerByPin2(pin,age){
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) AND age BETWEEN 18 AND (?)',[pin,age]);
+    }
 }
