@@ -527,7 +527,7 @@ exports.setOtpVerifier = (req, res, next) => {
     }
     let oo = new otptable(number, otp);
     oo.save().then(result => {
-        res.status(201).json({ status: 1, msg: 'otp of your number stated' });
+        res.status(201).json({ status: 1, msg: 'Your 4 digit security pin is set. Please make a note of it as you will require the pin to log into your account in the future' });
     }).catch(err => {
         console.log(err);
         if (!err.statusCode) {

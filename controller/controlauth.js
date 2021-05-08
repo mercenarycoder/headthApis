@@ -301,7 +301,7 @@ exports.submitData = async (req, res, next) => {
             let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
             c1 = `A data was inserted on number ${mobile} with ${type}` + dd;
             addNotification(t1, c1, mobile);
-            res.status(201).json({ status: 1, msg: `${type} is inserted successfully` });
+            res.status(201).json({ status: 1, msg: `${type} is uploaded successfully` });
         }).catch(err => {
             console.log(err);
             if (!err.statusCode) {
