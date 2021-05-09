@@ -155,6 +155,8 @@ app.get('/', function (req,res) {
 
 //CT20182428795
 app.listen(5000);
+
+module.exports = app;
 //code to remove a file from a folder
 // const fs=require('fs');
 // const path2='./images/back.jpg';
