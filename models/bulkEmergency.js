@@ -20,4 +20,7 @@ module.exports=class bulkEmergency{
     static checkExistence(called){
         return db.execute('SELECT COUNT(id) AS num FROM bulkemergency WHERE called=(?)',[called]);
     }
+    static getAllRequests(called){
+        return db.execute('SELECT * FROM bulkemergency WHERE called=(?) ORDER BY id DESC',[called]);
+    }
 }

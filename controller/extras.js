@@ -71,6 +71,31 @@ exports.searchBulk = async (req, res, next) => {
     }
 
 }
+exports.getAllRequests=async (req,res,next)=>{
+    try{
+        const called = req.body.called;
+        if (!called || called.length != 10) {
+            const err = new Error('Invalid Request');
+            err.statusCode = 200;
+            throw err;
+        }
+        bulkEmergency.getAllRequests(called).then(result => {
+            res.status(201).json({ status: 1, data: result[0] });
+        }).catch(err => {
+            console.log(err);
+            if (!err.statusCode) {
+                err.statusCode = 200;
+            }
+            next(err);
+        });
+    } catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
 exports.changeBulkStatus = async (req, res, next) => {
     try {
         const called = req.body.called;

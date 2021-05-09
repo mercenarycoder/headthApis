@@ -123,4 +123,5 @@ router.post('/defaultVolunteer',controlauth.checkVolunteerInfo);
 router.post('/raiseAlarm',extras.addBulkEmergency);
 router.post('/getBulks',extras.searchBulk);
 router.post('/changeBulkStatus',extras.changeBulkStatus);
+router.post('/getAllRequests',extras.getAllRequests);
 module.exports=router;
