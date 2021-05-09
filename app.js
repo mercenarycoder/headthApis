@@ -147,6 +147,12 @@ app.use((error, req, res, next) => {
     const message = error.message;
     res.status(201).json({ status: 0, msg: message });
 })
+
+//Respond with hello world
+app.get('/', function (req,res) {
+	res.send('hello world');
+});
+
 //CT20182428795
 app.listen(5000);
 //code to remove a file from a folder
