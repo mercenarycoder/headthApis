@@ -6,7 +6,7 @@ ssh ubuntu@52.66.205.197 <<EOF
     . ~/.nvm/nvm.sh
     nvm install v11.7.0
     npm install
-    npm install -g nodemon pm2
-    pm2 restart ecosystem.config.js
+    sudo npm install -g nodemon pm2
+    sudo pm2 restart ecosystem.config.js
     exit
 EOF
