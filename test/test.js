@@ -9,16 +9,16 @@ describe('GET /', function() {
  });
 });
 
-describe('Access to DB', function(){
-   describe('#fail', function(){
-        it('should return -1 because wrong credentials', function(done){
-            var connection = mysql.createConnection({
-                host: 'localhost',
-                user: 'root',
-                password: 'headth',
-                database: 'headth2'
-            });
-            connection.connect(done);
-        });
-    })
-});
+//describe('Access to DB', function(){
+//   describe('#fail', function(){
+//        it('should return -1 because wrong credentials', function(done){
+//            var connection = mysql.createConnection({
+//                host: 'localhost',
+//                user: 'root',
+//                password: 'headth',
+//                database: 'headth2'
+//            });
+//            connection.connect(done);
+//        });
+//    })
+//});
