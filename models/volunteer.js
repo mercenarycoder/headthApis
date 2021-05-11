@@ -23,10 +23,10 @@ module.exports=class volunteer{
         return db.execute('UPDATE volunteer SET city=(?),pincode=(?),address=(?),age=(?),blood=(?) WHERE mobile=(?)',[city,pin,address,age,blood,mobile]);
     }
     static getvolunteer(city,pin,blood,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[city,pin,blood,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) OR blood=(?) ',[city,pin,blood]);
     }
     static getvolunteer2(city,pin,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) AND age BETWEEN 18 AND (?) ',[city,pin,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR pincode=(?) ',[city,pin]);
     }
     static getDefaultInfo(mobile){
         return db.execute('SELECT * FROM volunteer WHERE mobile=(?)',[mobile]);
@@ -35,15 +35,15 @@ module.exports=class volunteer{
         return db.execute('SELECT COUNT(id) AS num FROM volunteer WHERE mobile=(?)',[mobile]);
     }
     static getVolunteerByCity(city,blood,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[city,blood,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) OR blood=(?)',[city,blood]);
     }
     static getVolunteerByCity2(city,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) AND age BETWEEN 18 AND (?)',[city,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND city=(?) ',[city]);
     }
     static getVolunteerByPin(pin,blood,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) OR blood=(?) AND age BETWEEN 18 AND (?)',[pin,blood,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) OR blood=(?) ',[pin,blood]);
     }
     static getVolunteerByPin2(pin,age){
-        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) AND age BETWEEN 18 AND (?)',[pin,age]);
+        return db.execute('SELECT * FROM volunteer WHERE enabled IS TRUE AND pincode=(?) ',[pin]);
     }
 }
