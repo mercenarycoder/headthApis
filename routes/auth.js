@@ -124,4 +124,6 @@ router.post('/raiseAlarm',extras.addBulkEmergency);
 router.post('/getBulks',extras.searchBulk);
 router.post('/changeBulkStatus',extras.changeBulkStatus);
 router.post('/getAllRequests',extras.getAllRequests);
+// getting all the requests of plasma,beds and Oxygen
+router.get('/getAllRequestsWeb',controlauth.getAllRequests);
 module.exports=router;

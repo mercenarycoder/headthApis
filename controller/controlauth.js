@@ -10,6 +10,7 @@ const upgrade = require('../models/upgrade');
 const notification = require('../models/notification');
 const covid_table = require('../models/covid_table');
 const volunteer = require('../models/volunteer');
+const searches=require('../models/searches');
 const fs = require('fs');
 const path = require('path');
 const { validationResult } = require('express-validator');
@@ -462,6 +463,7 @@ exports.getVolunteer = async (req, res, next) => {
             throw err;
         }
         city=city.toLowerCase();
+
         if(blood==='all'){
             volunteer.getvolunteer2(city,pin,age).then(result=>{
                 let t1 =  `You searched plasma donors`;
@@ -516,6 +518,24 @@ exports.getVolunteerByPin1=async (req, res, next) => {
             throw err;
         }
         // city=city.toLowerCase();
+        let checkerM=await user.checkNumber(mobile);
+
+        checkerM=checkerM[0];
+        checkerM=checkerM[0];
+        if(checkerM.num>0){
+            let userBasic=await user.getProfile(mobile);
+            userBasic=userBasic[0];
+            console.log(userBasic);
+            userBasic=userBasic[0];
+            let {name,dob}=userBasic;
+            console.log(name,dob);
+            let record=new searches(mobile,name,blood,pin,dob,'plasma');
+            record.save().then(result=>{
+                console.log('Recored recorded ',name);
+            }).catch(err=>{
+                console.log(err);
+            })
+        }
         if(blood==='all'){
             volunteer.getVolunteerByPin2(pin,age).then(result=>{
                 let t1 =  `You searched plasma donors`;
@@ -558,6 +578,18 @@ exports.getVolunteerByPin1=async (req, res, next) => {
         next(err);
     }
 }
+exports.getAllRequests=async (req,res,next)=>{
+    try{
+        let results=await searches.getAllRequest();
+        res.status(201).json({status:1,data:results[0]});
+    }catch (err) {
+        console.log(err);
+        if (!err.statusCode) {
+            err.statusCode = 200;
+        }
+        next(err);
+    }
+}
 exports.getVolunteerByCity=async (req, res, next) => {
     try {
         const age=req.body.age;
@@ -570,6 +602,25 @@ exports.getVolunteerByCity=async (req, res, next) => {
             throw err;
         }
         city=city.toLowerCase();
+        let checkerM=await user.checkNumber(mobile);
+
+        checkerM=checkerM[0];
+        checkerM=checkerM[0];
+        if(checkerM.num>0){
+            let userBasic=await user.getProfile(mobile);
+            userBasic=userBasic[0];
+            console.log(userBasic);
+            userBasic=userBasic[0];
+            let {name,dob}=userBasic;
+            console.log(name,dob);
+            let record=new searches(mobile,name,blood,pin,dob,'plasma');
+            record.save().then(result=>{
+                console.log('Recored recorded ',name);
+            }).catch(err=>{
+                console.log(err);
+            })
+        }
+        
         if(blood==='all'){
             volunteer.getVolunteerByCity2(city,age).then(result=>{
                 let t1 =  `You searched plasma donors`;
