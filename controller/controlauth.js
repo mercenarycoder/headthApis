@@ -1057,11 +1057,7 @@ exports.qrScanner = (req, res, next) => {
             all = alls[0];
             return emergency.getEmergencyContacts(mobile);
         }).then(emer => {
-            t1 = "Qr Scanned ";
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = "Your Qr Code was scanned " + dd;
-            addNotification(t1, c1, mobile);
+            
             res.status(201).json({ status: 1, profile: pf, reports: re, precriptions: pre, emergency: emer[0], medicine: med, dieseas: die, allergy: all, history: his });
         }).catch(err => {
             console.log(err);

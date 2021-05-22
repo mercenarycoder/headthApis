@@ -71,8 +71,8 @@ exports.searchBulk = async (req, res, next) => {
     }
 
 }
-exports.getAllRequests=async (req,res,next)=>{
-    try{
+exports.getAllRequests = async (req, res, next) => {
+    try {
         const called = req.body.called;
         if (!called || called.length != 10) {
             const err = new Error('Invalid Request');
@@ -105,7 +105,7 @@ exports.changeBulkStatus = async (req, res, next) => {
             err.statusCode = 200;
             throw err;
         }
-        bulkEmergency.changeStatus(called, caller,1).then(result => {
+        bulkEmergency.changeStatus(called, caller, 1).then(result => {
             console.log(result);
             res.status(201).json({ status: 1, msg: 'status changed for the bulk requests' });
         }).catch(err => {
@@ -718,6 +718,11 @@ exports.updateLocationAccess = (req, res, next) => {
     }
     const qr = new qraccesshistory(user, accesser, date, time, latitude, longitude);
     qr.save().then(result => {
+        t1 = "Qr Scanned ";
+        var date2 = new Date();
+        let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+        c1 = `Your Qr Code was scanned ${dd} at location latitude:-${latitude} \n and longitude:-${longitude} click on notification to view it in map`;
+        addNotification(t1, c1, mobile);
         res.status(201).json({ status: 1, msg: 'Qr access recorded' });
     }).catch(err => {
         console.log(err);
