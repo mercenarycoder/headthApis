@@ -6,7 +6,7 @@ const pool=mysql.createPool({
     database:'headth2',
     password:'headth'
 });
-
+//comment added
 module.exports=pool.promise();
 //http://localhost/phpmyadmin/server_databases.php?server=1
 //http://localhost/phpmyadmin/db_structure.php?server=1&db=headth
