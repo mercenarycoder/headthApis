@@ -721,8 +721,8 @@ exports.updateLocationAccess = (req, res, next) => {
         t1 = "Qr Scanned ";
         var date2 = new Date();
         let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-        c1 = `Your Qr Code was scanned ${dd} at location latitude:-${latitude} \n and longitude:-${longitude} click on notification to view it in map`;
-        addNotification(t1, c1, mobile);
+        c1 = `Your Qr Code was scanned ${dd} at location latitude:-${latitude} and longitude:-${longitude} click on notification to view it in map`;
+        addNotification(t1, c1, user);
         res.status(201).json({ status: 1, msg: 'Qr access recorded' });
     }).catch(err => {
         console.log(err);

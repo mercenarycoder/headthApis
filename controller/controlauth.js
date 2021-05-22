@@ -1084,11 +1084,11 @@ exports.qrScanner = (req, res, next) => {
             return dieseas.getDieseasByMobile(mobile);
         }).then(dis => {
             die = dis[0];
-            t1 = "Qr Scanned ";
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = "Your Qr Code was scanned " + dd;
-            addNotification(t1, c1, mobile);
+            // t1 = "Qr Scanned ";
+            // var date2 = new Date();
+            // let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+            // c1 = "Your Qr Code was scanned " + dd;
+            // addNotification(t1, c1, mobile);
             res.status(201).json({ status: 2, profile: pf, emergency: eme, dieseas: die, allergy: all, medicines: med });
         }).catch(err => {
             console.log(err);
