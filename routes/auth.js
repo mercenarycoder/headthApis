@@ -126,4 +126,11 @@ router.post('/changeBulkStatus',extras.changeBulkStatus);
 router.post('/getAllRequests',extras.getAllRequests);
 // getting all the requests of plasma,beds and Oxygen
 router.get('/getAllRequestsWeb',controlauth.getAllRequests);
+
+// routes to add update and delete vaccines
+router.post('/getVaccines',controlauth.getVaccines);
+router.post('/getVaccinesReverse',controlauth.getVaccinesReverse);
+router.post('/addVaccine',controlauth.addVaccine);
+router.post('/updateVaccine',controlauth.updateVaccines);
+
 module.exports=router;

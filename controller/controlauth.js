@@ -10,7 +10,8 @@ const upgrade = require('../models/upgrade');
 const notification = require('../models/notification');
 const covid_table = require('../models/covid_table');
 const volunteer = require('../models/volunteer');
-const searches=require('../models/searches');
+const searches = require('../models/searches');
+const vaccines = require('../models/vaccines');
 const fs = require('fs');
 const path = require('path');
 const { validationResult } = require('express-validator');
@@ -164,6 +165,39 @@ function decodeBase64Image(dataString) {
     response.data = new Buffer(matches[2], 'base64');
     return response;
 }
+exports.addVaccine = async (req, res, next) => {
+    try {
+        let mobile = req.body.mobile;
+        let title = req.body.title;
+        let date = req.body.date;
+        let doctor = req.body.doctor;
+        let observation = req.body.observation;
+        let image = req.body.imagePath;
+
+        if (!mobile || !title || !date || !observation || !image) {
+            const err = new Error("Invalid data");
+            err.statusCode = 200;
+            throw err;
+        }
+        console.log(mobile + " " + title + " " + date + " " + doctor + " " + observation);
+        const saver = await vaccines.saveIt(mobile, title, date, image, doctor, observation);
+        t1 = "Vaccine added " + title;
+        var date2 = new Date();
+        let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+        c1 = "A Vaccine was added on " + dd + " with observer name " + doctor;
+        addNotification(t1, c1, mobile);
+        res.status(201).json({
+            status: 1,
+            msg: "Vaccine Uploaded Successfully"
+        });
+    } catch (error) {
+        console.log(error);
+        if (!error.statusCode) {
+            error.statusCode = 200;
+        }
+        next(error);
+    }
+}
 exports.addPrescription = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty) {
@@ -243,7 +277,7 @@ exports.getCovidInfo = async (req, res, next) => {
         let present = await covid_table.checkUser(mobile);
         // console.log(present);
         present = present[0];
-        present=present[0];
+        present = present[0];
         // console.log(present.present);
         // console.log(present);
         if (present.present > 0) {
@@ -323,7 +357,7 @@ exports.changeVolunteer = async (req, res, next) => {
     try {
         const mobile = req.body.mobile;
         const status = req.body.status;
-        console.log(mobile," ",status);
+        console.log(mobile, " ", status);
         if (!mobile || mobile.length != 10) {
             const err = new Error('Invalid Data');
             err.statusCode = 200;
@@ -335,8 +369,8 @@ exports.changeVolunteer = async (req, res, next) => {
             let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
             c1 = `Volunteer status changed on number ${mobile}` + dd;
             addNotification(t1, c1, mobile);
-            return volunteer.changeStatus(mobile,status);
-        }).then(result=>{
+            return volunteer.changeStatus(mobile, status);
+        }).then(result => {
             res.status(201).json({ status: 1, msg: 'Voluteer status updated' });
         }).catch(err => {
             console.log(err);
@@ -354,23 +388,23 @@ exports.changeVolunteer = async (req, res, next) => {
         next(err);
     }
 }
-exports.checkVolunteerInfo=async (req,res,next)=>{
-    try{
-        const mobile=req.body.mobile;
-        if(!mobile||!mobile.length==10){
-            const err=new Error('Invalid Data');
-            err.statusCode=200;
+exports.checkVolunteerInfo = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        if (!mobile || !mobile.length == 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
             next(err);
         }
-        let num=await volunteer.checkPresence(mobile);
-        num=num[0];
-        num=num[0];
+        let num = await volunteer.checkPresence(mobile);
+        num = num[0];
+        num = num[0];
         // num =num[0];
         console.log(num.num);
-        if(num.num>0){
-            volunteer.getDefaultInfo(mobile).then(result=>{
+        if (num.num > 0) {
+            volunteer.getDefaultInfo(mobile).then(result => {
                 console.log(result[0]);
-                res.status(201).json({status:1,data:result[0],msg:"Volunteer information fetched"});
+                res.status(201).json({ status: 1, data: result[0], msg: "Volunteer information fetched" });
             }).catch(err => {
                 console.log(err);
                 if (!err.statusCode) {
@@ -379,8 +413,8 @@ exports.checkVolunteerInfo=async (req,res,next)=>{
                 next(err);
             });
         }
-        else{
-            res.status(201).json({status:2,data:{},msg:"First time volunteer"});
+        else {
+            res.status(201).json({ status: 2, data: {}, msg: "First time volunteer" });
         }
     }
     catch (err) {
@@ -408,38 +442,38 @@ exports.setVolunteer = async (req, res, next) => {
         city = city.toLowerCase();
         blood = blood.toLowerCase();
 
-        let num=await volunteer.checkPresence(mobile);
-        num=num[0];
-        num=num[0];
+        let num = await volunteer.checkPresence(mobile);
+        num = num[0];
+        num = num[0];
         // num =num[0];
         console.log(num.num);
-        if(num.num>0){
-            volunteer.updateVolunteer(city,address,pin,age,blood,mobile).then(result=>{
-                res.status(201).json({ status: 1, msg: 'Successfully updated volunteer profile'});
+        if (num.num > 0) {
+            volunteer.updateVolunteer(city, address, pin, age, blood, mobile).then(result => {
+                res.status(201).json({ status: 1, msg: 'Successfully updated volunteer profile' });
             }).catch(err => {
-            console.log(err);
-            if (!err.statusCode) {
-                err.statusCode = 200;
-            }
-            next(err);
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
             });
         }
-        else{
-        let newVolunteer = new volunteer(name, mobile, address, city, pin, 1, blood,age);
-        newVolunteer.save().then(result => {
-            let t1 = `You are added as a volunteer in covid profile`;
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = `You are a volunteer on number ${mobile} ` + dd;
-            addNotification(t1, c1, mobile);
-            res.status(201).json({ statuc: 1, msg: 'Successfully turned into a volunteer' });
-        }).catch(err => {
-            console.log(err);
-            if (!err.statusCode) {
-                err.statusCode = 200;
-            }
-            next(err);
-        });
+        else {
+            let newVolunteer = new volunteer(name, mobile, address, city, pin, 1, blood, age);
+            newVolunteer.save().then(result => {
+                let t1 = `You are added as a volunteer in covid profile`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You are a volunteer on number ${mobile} ` + dd;
+                addNotification(t1, c1, mobile);
+                res.status(201).json({ statuc: 1, msg: 'Successfully turned into a volunteer' });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
         }
     }
     catch (err) {
@@ -452,43 +486,42 @@ exports.setVolunteer = async (req, res, next) => {
 }
 exports.getVolunteer = async (req, res, next) => {
     try {
-        const age=req.body.age;
-        let pin=req.body.pin;
-        let city=req.body.city;
-        let mobile=req.body.mobile;
-        let blood=req.body.blood;
-        if(!age||!pin|!city||!blood||!mobile||mobile.length!=10){
-            const err=new Error('Invalid Data');
-            err.statusCode=200;
+        const age = req.body.age;
+        let pin = req.body.pin;
+        let city = req.body.city;
+        let mobile = req.body.mobile;
+        let blood = req.body.blood;
+        if (!age || !pin | !city || !blood || !mobile || mobile.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
             throw err;
         }
-        city=city.toLowerCase();
+        city = city.toLowerCase();
 
-        if(blood==='all'){
-            volunteer.getvolunteer2(city,pin,age).then(result=>{
-                let t1 =  `You searched plasma donors`;
+        if (blood === 'all') {
+            volunteer.getvolunteer2(city, pin, age).then(result => {
+                let t1 = `You searched plasma donors`;
                 var date2 = new Date();
                 let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
                 c1 = `You searched plasma donors with ${pin} , ${city} , ${age}` + dd;
                 addNotification(t1, c1, mobile);
-                    res.status(201).json({status:1,data:result[0]});
-                }).catch(err => {
-                    console.log(err);
-                    if (!err.statusCode) {
-                        err.statusCode = 200;
-                    }
-                    next(err);
-                });
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
         }
-        else
-        {
-            volunteer.getvolunteer(city,pin,blood,age).then(result=>{
-            let t1 =  `You searched plasma donors`;
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = `You searched plasma donors with ${pin} , ${city} , ${blood} , ${age}` + dd;
-            addNotification(t1, c1, mobile);
-                res.status(201).json({status:1,data:result[0]});
+        else {
+            volunteer.getvolunteer(city, pin, blood, age).then(result => {
+                let t1 = `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with ${pin} , ${city} , ${blood} , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                res.status(201).json({ status: 1, data: result[0] });
             }).catch(err => {
                 console.log(err);
                 if (!err.statusCode) {
@@ -506,61 +539,60 @@ exports.getVolunteer = async (req, res, next) => {
         next(err);
     }
 }
-exports.getVolunteerByPin1=async (req, res, next) => {
+exports.getVolunteerByPin1 = async (req, res, next) => {
     try {
-        const age=req.body.age;
-        let pin=req.body.pin;
-        let mobile=req.body.mobile;
-        let blood=req.body.blood;
-        if(!age||!pin||!blood||!mobile||mobile.length!=10){
-            const err=new Error('Invalid Data');
-            err.statusCode=200;
+        const age = req.body.age;
+        let pin = req.body.pin;
+        let mobile = req.body.mobile;
+        let blood = req.body.blood;
+        if (!age || !pin || !blood || !mobile || mobile.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
             throw err;
         }
         // city=city.toLowerCase();
-        let checkerM=await user.checkNumber(mobile);
+        let checkerM = await user.checkNumber(mobile);
 
-        checkerM=checkerM[0];
-        checkerM=checkerM[0];
-        if(checkerM.num>0){
-            let userBasic=await user.getProfile(mobile);
-            userBasic=userBasic[0];
+        checkerM = checkerM[0];
+        checkerM = checkerM[0];
+        if (checkerM.num > 0) {
+            let userBasic = await user.getProfile(mobile);
+            userBasic = userBasic[0];
             console.log(userBasic);
-            userBasic=userBasic[0];
-            let {name,dob}=userBasic;
-            console.log(name,dob);
-            let record=new searches(mobile,name,blood,pin,dob,'plasma');
-            record.save().then(result=>{
-                console.log('Recored recorded ',name);
-            }).catch(err=>{
+            userBasic = userBasic[0];
+            let { name, dob } = userBasic;
+            console.log(name, dob);
+            let record = new searches(mobile, name, blood, pin, dob, 'plasma');
+            record.save().then(result => {
+                console.log('Recored recorded ', name);
+            }).catch(err => {
                 console.log(err);
             })
         }
-        if(blood==='all'){
-            volunteer.getVolunteerByPin2(pin,age).then(result=>{
-                let t1 =  `You searched plasma donors`;
+        if (blood === 'all') {
+            volunteer.getVolunteerByPin2(pin, age).then(result => {
+                let t1 = `You searched plasma donors`;
                 var date2 = new Date();
                 let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
                 c1 = `You searched plasma donors with ${pin}  , ${age}` + dd;
                 addNotification(t1, c1, mobile);
-                    res.status(201).json({status:1,data:result[0]});
-                }).catch(err => {
-                    console.log(err);
-                    if (!err.statusCode) {
-                        err.statusCode = 200;
-                    }
-                    next(err);
-                });
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
         }
-        else
-        {
-            volunteer.getVolunteerByPin(pin,blood,age).then(result=>{
-            let t1 =  `You searched plasma donors`;
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = `You searched plasma donors with ${pin} , ${blood} , ${age}` + dd;
-            addNotification(t1, c1, mobile);
-                res.status(201).json({status:1,data:result[0]});
+        else {
+            volunteer.getVolunteerByPin(pin, blood, age).then(result => {
+                let t1 = `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with ${pin} , ${blood} , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                res.status(201).json({ status: 1, data: result[0] });
             }).catch(err => {
                 console.log(err);
                 if (!err.statusCode) {
@@ -578,11 +610,11 @@ exports.getVolunteerByPin1=async (req, res, next) => {
         next(err);
     }
 }
-exports.getAllRequests=async (req,res,next)=>{
-    try{
-        let results=await searches.getAllRequest();
-        res.status(201).json({status:1,data:results[0]});
-    }catch (err) {
+exports.getAllRequests = async (req, res, next) => {
+    try {
+        let results = await searches.getAllRequest();
+        res.status(201).json({ status: 1, data: results[0] });
+    } catch (err) {
         console.log(err);
         if (!err.statusCode) {
             err.statusCode = 200;
@@ -590,62 +622,61 @@ exports.getAllRequests=async (req,res,next)=>{
         next(err);
     }
 }
-exports.getVolunteerByCity=async (req, res, next) => {
+exports.getVolunteerByCity = async (req, res, next) => {
     try {
-        const age=req.body.age;
-        let city=req.body.city;
-        let mobile=req.body.mobile;
-        let blood=req.body.blood;
-        if(!age||!city||!blood||!mobile||mobile.length!=10){
-            const err=new Error('Invalid Data');
-            err.statusCode=200;
+        const age = req.body.age;
+        let city = req.body.city;
+        let mobile = req.body.mobile;
+        let blood = req.body.blood;
+        if (!age || !city || !blood || !mobile || mobile.length != 10) {
+            const err = new Error('Invalid Data');
+            err.statusCode = 200;
             throw err;
         }
-        city=city.toLowerCase();
-        let checkerM=await user.checkNumber(mobile);
+        city = city.toLowerCase();
+        let checkerM = await user.checkNumber(mobile);
 
-        checkerM=checkerM[0];
-        checkerM=checkerM[0];
-        if(checkerM.num>0){
-            let userBasic=await user.getProfile(mobile);
-            userBasic=userBasic[0];
+        checkerM = checkerM[0];
+        checkerM = checkerM[0];
+        if (checkerM.num > 0) {
+            let userBasic = await user.getProfile(mobile);
+            userBasic = userBasic[0];
             console.log(userBasic);
-            userBasic=userBasic[0];
-            let {name,dob}=userBasic;
-            console.log(name,dob);
-            let record=new searches(mobile,name,blood,pin,dob,'plasma');
-            record.save().then(result=>{
-                console.log('Recored recorded ',name);
-            }).catch(err=>{
+            userBasic = userBasic[0];
+            let { name, dob } = userBasic;
+            console.log(name, dob);
+            let record = new searches(mobile, name, blood, pin, dob, 'plasma');
+            record.save().then(result => {
+                console.log('Recored recorded ', name);
+            }).catch(err => {
                 console.log(err);
             })
         }
-        
-        if(blood==='all'){
-            volunteer.getVolunteerByCity2(city,age).then(result=>{
-                let t1 =  `You searched plasma donors`;
+
+        if (blood === 'all') {
+            volunteer.getVolunteerByCity2(city, age).then(result => {
+                let t1 = `You searched plasma donors`;
                 var date2 = new Date();
                 let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
                 c1 = `You searched plasma donors with ${city} , ${age}` + dd;
                 addNotification(t1, c1, mobile);
-                    res.status(201).json({status:1,data:result[0]});
-                }).catch(err => {
-                    console.log(err);
-                    if (!err.statusCode) {
-                        err.statusCode = 200;
-                    }
-                    next(err);
-                });
+                res.status(201).json({ status: 1, data: result[0] });
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            });
         }
-        else
-        {
-            volunteer.getVolunteerByCity(city,blood,age).then(result=>{
-            let t1 =  `You searched plasma donors`;
-            var date2 = new Date();
-            let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-            c1 = `You searched plasma donors with  ${city} , ${blood} , ${age}` + dd;
-            addNotification(t1, c1, mobile);
-                res.status(201).json({status:1,data:result[0]});
+        else {
+            volunteer.getVolunteerByCity(city, blood, age).then(result => {
+                let t1 = `You searched plasma donors`;
+                var date2 = new Date();
+                let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+                c1 = `You searched plasma donors with  ${city} , ${blood} , ${age}` + dd;
+                addNotification(t1, c1, mobile);
+                res.status(201).json({ status: 1, data: result[0] });
             }).catch(err => {
                 console.log(err);
                 if (!err.statusCode) {
@@ -748,6 +779,38 @@ exports.getTopReports = (req, res, next) => {
         next(err);
     });
 }
+exports.updateVaccines = async (req, res, next) => {
+    try {
+        const mobile = req.body.mobile;
+        const id = req.body.id;
+        const title = req.body.title;
+        const date = req.body.date;
+        const doctor = req.body.doctor;
+        const observation = req.body.observation;
+        const image = req.body.image;
+        if (!image || !mobile || !id || !title || !date || !doctor || !observation) {
+            const err = new Error("No image provided");
+            err.statusCode = 201;
+            throw err;
+        }
+        const updater=await vaccines.updatePres(id,mobile,title,date,image,doctor,observation);
+        t1 = "Vaccine Updated " + title;
+        var date2 = new Date();
+        let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+        c1 = "A vaccine was updated on " + dd + " with observer name " + doctor;
+        addNotification(t1, c1, mobile);
+        res.status(201).json({
+            status: 1,
+            msg: "Vaccine Updated Successfully"
+        });
+    } catch (error) {
+        console.log(error);
+        if (!error.statusCode) {
+            error.statusCode = 200;
+        }
+        next(error);
+    }
+}
 exports.updatePrescription = (req, res, next) => {
     const mobile = req.body.mobile;
     const id = req.body.id;
@@ -774,6 +837,42 @@ exports.updatePrescription = (req, res, next) => {
         }
         next(err);
     });
+}
+exports.getVaccines=async (req,res,next)=>{
+    try {
+        let mobile=req.body.mobile;
+        if(!mobile){
+            const err=new Error('Invalid Request');
+            err.statusCode=200;
+            throw err;
+        }
+        const pres=await vaccines.getAllById(mobile);
+        res.status(201).json({ status: 1, data: pres[0] });
+    } catch (error) {
+        console.log(error);
+        if (!error.statusCode) {
+            error.statusCode = 200;
+        }
+        next(error);
+    }
+}
+exports.getVaccinesReverse=async (req,res,next)=>{
+    try {
+        let mobile=req.body.mobile;
+        if(!mobile){
+            const err=new Error('Invalid Request');
+            err.statusCode=200;
+            throw err;
+        }
+        const pres=await vaccines.reverseOrder(mobile);
+        res.status(201).json({ status: 1, data: pres[0] });
+    } catch (error) {
+        console.log(error);
+        if (!error.statusCode) {
+            error.statusCode = 200;
+        }
+        next(error);
+    }
 }
 exports.getPrescriptions = (req, res, next) => {
     const errors = validationResult(req);
@@ -1057,7 +1156,7 @@ exports.qrScanner = (req, res, next) => {
             all = alls[0];
             return emergency.getEmergencyContacts(mobile);
         }).then(emer => {
-            
+
             res.status(201).json({ status: 1, profile: pf, reports: re, precriptions: pre, emergency: emer[0], medicine: med, dieseas: die, allergy: all, history: his });
         }).catch(err => {
             console.log(err);
