@@ -94,36 +94,46 @@ router.get('/checkShare',extras.checkRequest);
 router.post('/confirm',extras.confirmCheck);
 
 router.post('/deleteEmergency',controlauth.deleteEmergency);
+
 //delete data from backend
 router.post('/deleteData',controlauth.deleteData);
+
 //add images to backed in base64 from android
 router.post('/addImage64',controlauth.addImage64);
+
 //updating reports and prescriptions
 router.post('/updatePrescription',controlauth.updatePrescription);
 router.post('/updateReport',controlauth.updateReport);
+
 //route to record the qr access history and also the location where it was recorded
 router.post('/recordLocation',extras.updateLocationAccess);
+
 //user validator of otp after login
 router.post('/newOtp',extras.setOtpVerifier);
 router.post('/updateOtp',extras.updateOtpVerifier);
 router.post('/checkOtp',extras.checkOtpVerifier);
 router.post('/deleteOtp',extras.deleteOtp);
+
 //mycovid profile routes
 router.post('/getCovidProfile',controlauth.getCovidInfo);
 router.post('/submitData',controlauth.submitData);
 router.post('/volunteer',controlauth.changeVolunteer);
+
 // routes to set and get volunteers
 router.post('/setVolunteer',controlauth.setVolunteer);
 router.post('/getVolunteer',controlauth.getVolunteer);
 router.post('/getVolunteerCity',controlauth.getVolunteerByCity);
 router.post('/getVolunteerPin',controlauth.getVolunteerByPin1);
+
 //route for getting default volunteer profile
 router.post('/defaultVolunteer',controlauth.checkVolunteerInfo);
+
 //bulk request notifications apis
 router.post('/raiseAlarm',extras.addBulkEmergency);
 router.post('/getBulks',extras.searchBulk);
 router.post('/changeBulkStatus',extras.changeBulkStatus);
 router.post('/getAllRequests',extras.getAllRequests);
+
 // getting all the requests of plasma,beds and Oxygen
 router.get('/getAllRequestsWeb',controlauth.getAllRequests);
 
@@ -132,5 +142,6 @@ router.post('/getVaccines',controlauth.getVaccines);
 router.post('/getVaccinesReverse',controlauth.getVaccinesReverse);
 router.post('/addVaccine',controlauth.addVaccine);
 router.post('/updateVaccine',controlauth.updateVaccines);
+router.post('/deleteVaccines',controlauth.deleteVaccines);
 
 module.exports=router;

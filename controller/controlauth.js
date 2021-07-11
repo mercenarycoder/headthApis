@@ -1201,6 +1201,59 @@ exports.qrScanner = (req, res, next) => {
         res.status(201).json({ status: 0, msg: "invalid request" });
     }
 }
+
+exports.deleteVaccines = (req, res, next) => {
+    let id = req.body.id;
+    const mobile = req.body.mobile;
+    let files = req.body.path;
+    console.log(id, " ", files);
+    if (!id || !files || !mobile) {
+        const err = new Error("Invalid Request");
+        err.statusCode = 200;
+        throw err;
+    }
+    else if (id.length <= 0 || files.length <= 0) {
+        const err = new Error("No prescriptions to be deleted...");
+        err.statusCode = 200;
+        throw err;
+    }
+    else {
+        let s = 0;
+        for (i = 0; i < id.length; i++) {
+            let item = id[i];
+            s = i;
+            vaccines.deletePres(item.id).then(result => {
+                let item_image = files[s];
+                console.log(item_image.path);
+                fs.unlink('./images/' + item_image.path, (err) => {
+                    if (err) {
+                        console.log(err);
+                        // res.status(200).json({status:0,msg:"Image is not deleted"});
+                    }
+                    else {
+                        console.log("data is deleted");
+                        // res.status(201).json({status:1,msg:"data deletion successfull"});
+                    }
+                })
+                // return clearImage(item_image.path);
+            }).then(result => {
+                console.log("all ok image deleted");
+            }).catch(err => {
+                console.log(err);
+                if (!err.statusCode) {
+                    err.statusCode = 200;
+                }
+                next(err);
+            })
+        }
+        t1 = "Vaccines deleted ";
+        var date2 = new Date();
+        let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
+        c1 = "A vaccine was deleted on " + dd;
+        addNotification(t1, c1, mobile);
+        res.status(201).json({ status: 1, msg: "All marked vaccines deleted" });
+    }
+}
 exports.deletePres = (req, res, next) => {
     let id = req.body.id;
     const mobile = req.body.mobile;
@@ -1246,10 +1299,10 @@ exports.deletePres = (req, res, next) => {
                 next(err);
             })
         }
-        t1 = "Report deleted ";
+        t1 = "Prescription deleted ";
         var date2 = new Date();
         let dd = date2.getDate() + "-" + date2.getMonth() + "-" + date2.getFullYear();
-        c1 = "A report was deleted on " + dd;
+        c1 = "A prescription was deleted on " + dd;
         addNotification(t1, c1, mobile);
         res.status(201).json({ status: 1, msg: "All marked prescriptions deleted" });
     }
